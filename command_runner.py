@@ -1,7 +1,9 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextEdit, QLabel, QLineEdit, QGridLayout
-import urllib
+import subprocess
+
+
 
 class CommandRunner(QWidget):
 
@@ -37,7 +39,7 @@ class CommandRunner(QWidget):
 
         self.setGeometry(600, 600, 300, 150)
         self.setWindowTitle('Command Runner')    
-        # self.show()
+        self.show()
 
     def run_command(self):
         '''
@@ -48,12 +50,20 @@ class CommandRunner(QWidget):
         command = self.command_entry.text()
         # read command output into a variable. this is synchronous.
         # may need to research how to read asynchronous output.
-        output = os.popen(f'{command} {target}').read()
-        self.output_area.setText(output)
-
-    def button_released(self):
-        # print("Button released")
-        os.system('killall ')
+        # output = os.popen(f'{command} {target}').read()
+        args = [command]
+        if target:
+            args.append(target)
+        self.output_area.clear()
+        with subprocess.Popen(args, bufsize=1, stdout=subprocess.PIPE, universal_newlines=True) as proc:
+            while True:
+                output = proc.stdout.readline()
+                # self.output_area.append("Sovello")
+                if output == '' and proc.poll() is not None:
+                    break
+                if output:
+                    self.output_area.setText(output.strip())
+                    print(output.strip())
 
 if __name__ == '__main__':
     qapp = QApplication(sys.argv)
